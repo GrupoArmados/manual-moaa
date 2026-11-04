@@ -25,7 +25,7 @@ figcaption{color:#ffca6a;font-size:13px;margin:0 0 5px}
 img{display:block;width:100%;height:auto}
 footer{padding:24px 0;color:#aeb7c6}
 @media(max-width:560px){summary{gap:10px}
-em{display:none}
+summary em{display:none}
 }
 
 video{display:block;width:min(100%,674px);height:auto;background:#101319;margin:auto}
@@ -120,3 +120,24 @@ summary:focus-visible,a:focus-visible{outline:2px solid #ffc14c;outline-offset:2
 
 .formas-pie>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#475054}.formas-pie>div>div{text-align:center;background:#192329;padding:.55rem;color:#ebc481}.formas-pie svg{display:block;width:100%;height:66px}.formas-pie strong{font:600 .85rem/1.4 system-ui;color:#e5eaed}
 @media(max-width:540px){.formas-pie>div{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Consulta durante la lectura y láminas ampliables. */
+.reader-nav{position:sticky;top:0;z-index:5;display:flex;justify-content:center;gap:6px;max-width:none;padding:5px 8px;background:#101319;border-bottom:1px solid #48514f}
+.reader-nav a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;text-decoration:none;font-weight:650}
+.reader-nav a:hover{background:#273039}
+.hoja,.sumario,.hoja [id]{scroll-margin-top:70px}
+.page-nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #454c54;margin-top:28px;padding:8px 0;font-size:.85rem}
+.page-nav a{display:flex;align-items:center;min-height:44px;padding:0 8px}
+.book-text img[src$="/relieve.png"]{background:#f4f0e5;padding:12px}
+.image-link{display:block;cursor:zoom-in}
+.image-link:focus-visible{outline:3px solid #ffc14c;outline-offset:3px}
+.mapa-detalle{overflow-x:auto;max-width:100%}
+.mapa-detalle .mapa-guiado{min-width:636px}
+.mapa-detalle:focus-visible{outline:2px solid #ffc14c}
+.mapa-ayuda{font-size:.85rem;color:#d6deda;padding:0 12px}
+.rumbos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0;border:1px solid #465056}
+.rumbos div{padding:12px 4px;text-align:center;background:#192329}
+.rumbos div+div{border-left:1px solid #465056}
+.rumbos dt{font-size:.9rem}.rumbos dd{margin:.35rem 0 0;font:700 1.3rem monospace;color:#f3c779}
+@media(max-width:480px){.reader-nav a{padding-inline:10px}.recognition{grid-template-columns:1fr}.recognition .atlas-plate{max-width:340px;margin-inline:auto}.hoja .libro-folio{gap:8px}}
+@media print{.reader-nav,.page-nav,.mapa-ayuda{display:none}.mapa-detalle{overflow:visible}.mapa-detalle .mapa-guiado{min-width:0}}
