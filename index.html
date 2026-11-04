@@ -1,0 +1,19 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><title>Academia MOAA</title><body style="background:#101319;color:#ece8dd;font:16px system-ui"><p id="estado">Para consultar el manual, abre el enlace completo que te ha enviado la Academia.</p><script type="module">
+const params=new URLSearchParams(location.hash.slice(1)),key=params.get('k'),status=document.querySelector('#estado');
+if(!key) window.addEventListener('hashchange',()=>location.reload(),{once:true});
+if(/^[0-9a-f]{64}$/.test(key||'')) try {
+ const bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+ const raw=Uint8Array.from(key.match(/../g),n=>parseInt(n,16));
+ const k=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
+ const buffer=new Uint8Array(await(await fetch('./manual.bin')).arrayBuffer());
+ const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:buffer.slice(0,12)},k,buffer.slice(12));
+ const files=JSON.parse(new TextDecoder().decode(plain)), cache=new Map();
+ const mime={svg:'image/svg+xml',png:'image/png',jpg:'image/jpeg',webp:'image/webp',mp4:'video/mp4',css:'text/css'};
+ function asset(name){if(!cache.has(name))cache.set(name,URL.createObjectURL(new Blob([bytes(files[name])],{type:mime[name.split('.').pop()]})));return cache.get(name)}
+ function render(){const args=new URLSearchParams(location.hash.slice(1));let page=args.get('p')||'manual.html';if(!page.endsWith('.html')||!Object.hasOwn(files,page))page='manual.html';
+ const doc=new DOMParser().parseFromString(new TextDecoder().decode(bytes(files[page])),'text/html');for(const el of doc.querySelectorAll('[src],[poster],link[href]'))for(const att of ['src','poster','href']){const name=el.getAttribute(att);if(name&&files[name])el.setAttribute(att,asset(name))}
+ for(const a of doc.querySelectorAll('a[href]')){const u=a.getAttribute('href');if(u.startsWith('https:')){a.rel='noreferrer';continue}const [file,id]=u.split('#');const hash=new URLSearchParams({k:key,p:file||page});if(id)hash.set('s',id);a.href='#'+hash}
+ document.title=doc.title;document.body.replaceChildren(...doc.body.childNodes);document.body.removeAttribute('style');if(!document.querySelector('link[rel=stylesheet]'))document.head.append(doc.querySelector('link[rel=stylesheet]'));const target=document.getElementById(args.get('s'));if(target)requestAnimationFrame(()=>target.scrollIntoView());else window.scrollTo(0,0)}
+ render();window.addEventListener('hashchange',render);
+} catch {status.textContent='El enlace no permite abrir esta edición. Comprueba que esté completo.'}
+</script></body></html>
