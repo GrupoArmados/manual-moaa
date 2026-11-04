@@ -139,5 +139,19 @@ summary:focus-visible,a:focus-visible{outline:2px solid #ffc14c;outline-offset:2
 .rumbos div{padding:12px 4px;text-align:center;background:#192329}
 .rumbos div+div{border-left:1px solid #465056}
 .rumbos dt{font-size:.9rem}.rumbos dd{margin:.35rem 0 0;font:700 1.3rem monospace;color:#f3c779}
+.presentacion h2{margin-top:0;border:0;padding:0;font:normal clamp(1.7rem,4vw,2.4rem)/1.15 Georgia,serif;text-transform:none;letter-spacing:-.02em}
+.ruta-lectura{list-style:none;margin:20px 0;padding:0;border-top:1px solid #454c54}
+.ruta-lectura li{border-bottom:1px solid #454c54}
+.ruta-lectura a{display:block;padding:12px 0;text-decoration:none}
+.ruta-lectura b,.ruta-lectura span{display:block}
+.ruta-lectura span{color:#d6deda;line-height:1.5;margin-top:4px}
+.ruta-lectura a:hover b{text-decoration:underline}
+.claves-puesto{padding:0}
+.claves-puesto div{display:grid;grid-template-columns:6rem 1fr;gap:12px;padding:10px 0;border-bottom:1px solid #454c54}
+.claves-puesto dd{margin:0}
+.llamada-radio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0;border:1px solid #454c54;background:#192329}
+.llamada-radio div{padding:12px}.llamada-radio div+div{border-left:1px solid #454c54}
+.llamada-radio dt{font-size:.85rem}.llamada-radio dd{margin:6px 0 0;color:#e8ebef}
+@media(max-width:560px){.llamada-radio{grid-template-columns:1fr}.llamada-radio div+div{border-left:0;border-top:1px solid #454c54}.claves-puesto div{grid-template-columns:5rem 1fr}}
 @media(max-width:480px){.reader-nav a{padding-inline:10px}.recognition{grid-template-columns:1fr}.recognition .atlas-plate{max-width:340px;margin-inline:auto}.hoja .libro-folio{gap:8px}}
 @media print{.reader-nav,.page-nav,.mapa-ayuda{display:none}.mapa-detalle{overflow:visible}.mapa-detalle .mapa-guiado{min-width:0}}
