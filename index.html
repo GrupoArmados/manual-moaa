@@ -1,19 +1,513 @@
-<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><title>Academia MOAA</title><body style="background:#101319;color:#ece8dd;font:16px system-ui"><p id="estado">Para consultar el manual, abre el enlace completo que te ha enviado la Academia.</p><script type="module">
-const params=new URLSearchParams(location.hash.slice(1)),key=params.get('k'),status=document.querySelector('#estado');
-if(!key) window.addEventListener('hashchange',()=>location.reload(),{once:true});
-if(/^[0-9a-f]{64}$/.test(key||'')) try {
- const bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
- const raw=Uint8Array.from(key.match(/../g),n=>parseInt(n,16));
- const k=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
- const buffer=new Uint8Array(await(await fetch('./manual.bin')).arrayBuffer());
- const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:buffer.slice(0,12)},k,buffer.slice(12));
- const files=JSON.parse(new TextDecoder().decode(plain)), cache=new Map();
- const mime={svg:'image/svg+xml',png:'image/png',jpg:'image/jpeg',webp:'image/webp',mp4:'video/mp4',css:'text/css'};
- function asset(name){if(!cache.has(name))cache.set(name,URL.createObjectURL(new Blob([bytes(files[name])],{type:mime[name.split('.').pop()]})));return cache.get(name)}
- function render(){const args=new URLSearchParams(location.hash.slice(1));let page=args.get('p')||'manual.html';if(!page.endsWith('.html')||!Object.hasOwn(files,page))page='manual.html';
- const doc=new DOMParser().parseFromString(new TextDecoder().decode(bytes(files[page])),'text/html');for(const el of doc.querySelectorAll('[src],[poster],link[href]'))for(const att of ['src','poster','href']){const name=el.getAttribute(att);if(name&&files[name])el.setAttribute(att,asset(name))}
- for(const a of doc.querySelectorAll('a[href]')){const u=a.getAttribute('href');if(u.startsWith('https:')){a.rel='noreferrer';continue}const [file,id]=u.split('#');const hash=new URLSearchParams({k:key,p:file||page});if(id)hash.set('s',id);a.href='#'+hash}
- document.title=doc.title;document.body.replaceChildren(...doc.body.childNodes);document.body.removeAttribute('style');if(!document.querySelector('link[rel=stylesheet]'))document.head.append(doc.querySelector('link[rel=stylesheet]'));const target=document.getElementById(args.get('s'));if(target)requestAnimationFrame(()=>target.scrollIntoView());else window.scrollTo(0,0)}
- render();window.addEventListener('hashchange',render);
-} catch {status.textContent='El enlace no permite abrir esta edición. Comprueba que esté completo.'}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Manual de infantería básica · Grupo Armados</title>
+  <link rel="stylesheet" href="recursos/academia.css">
+</head>
+<body>
+<header>
+<a href="index.html">
+<img src="recursos/armados.webp" alt="Grupo Armados" width="150" height="40">
+</a>
+<a href="index.html">Academia MOAA</a>
+<a href="https://foro.grupoarmados.info/">Foro</a>
+</header>
+<nav aria-label="Ruta">
+<a href="index.html">Academia</a> / Manual de infantería básica</nav>
+<main class="libro">
+<div class="cubierta-campo">
+  <div class="radio-cabecera cubierta-principal">
+    <div class="radio-titulo"><img class="radio-marca" src="recursos/armados.webp" alt="Grupo Armados">
+      <p class="radio-serie">Academia MOAA · Manual de campo</p>
+      <h1>Manual de infantería básica</h1>
+      <p class="cubierta-juegos">Arma Reforger · Arma 3</p>
+    </div>
+    <img class="radio-foto" src="recursos/b3-operador.jpg" width="289" height="403" alt="Operador de la Academia en el terreno">
+  </div>
+  <nav class="cubierta-accesos" aria-label="Abrir el manual"><a href="#b1-apartado-1">Empezar a leer <span aria-hidden="true">→</span></a><a href="#sumario">Consultar el índice</a></nav>
+</div>
+<nav class="sumario" id="sumario" aria-label="Índice general"><p class="series">MANUAL DE CAMPO</p><h2>Índice general</h2><div class="sumario-lista"><div><h3><a href="#b1-apartado-1">B1 · Infante básico</a></h3><ol><li><a href="#b1-apartado-1">Tu puesto en la escuadra<small>01</small></a></li><li><a href="#b1-procedimientos">Equipo y responsabilidades del fusilero<small>02</small></a></li><li><a href="#b1-apartado-2">Moverse y observar juntos<small>03</small></a></li><li><a href="#b1-apartado-3">Relevar, reagrupar y dar cuenta<small>04</small></a></li><li><a href="#b1-en-mision">El guía desaparece tras una tapia<small>05</small></a></li><li><a href="#b1-incidencias">Incorporación, reunión e identificación<small>06</small></a></li></ol></div>
+<div><h3><a href="#b2-apartado-1">B2 · Orientación</a></h3><ol><li><a href="#b2-apartado-1">Del terreno al mapa<small>07</small></a></li><li><a href="#b2-incidencias">Distancia y rumbo desde un origen conocido<small>08</small></a></li><li><a href="#b2-apartado-2">Preparar y seguir un itinerario<small>09</small></a></li><li><a href="#b2-en-mision">Encontrar la salida de un pueblo<small>10</small></a></li><li><a href="#b2-procedimientos">Obstáculos y visibilidad reducida<small>11</small></a></li><li><a href="#b2-apartado-3">Resolver una posición dudosa<small>12</small></a></li></ol></div>
+<div><h3><a href="#b3-apartado-1">B3 · Comunicaciones</a></h3><ol><li><a href="#b3-apartado-1">Compartir una red<small>13</small></a></li><li><a href="#b3-procedimientos">Disciplina y comprobación de radio<small>14</small></a></li><li><a href="#b3-apartado-2">Describir y confirmar<small>15</small></a></li><li><a href="#b3-incidencias">Avisar de una baja y pedir recogida<small>16</small></a></li><li><a href="#b3-en-mision">Tu compañero te oye, el otro vehículo no<small>17</small></a></li><li><a href="#b3-apartado-3">Recuperar el enlace y dar un parte<small>18</small></a></li><li><a href="#b3-alfabeto">Alfabeto fonético de radio<small>19</small></a></li></ol></div>
+<div><h3><a href="#b4-apartado-1">B4 · Vehículos ligeros</a></h3><ol><li><a href="#b4-apartado-1">Entender el transporte<small>20</small></a></li><li><a href="#b4-apartado-2">Observar desde el vehículo<small>21</small></a></li><li><a href="#b4-procedimientos">Avisos del pasajero en marcha<small>22</small></a></li><li><a href="#b4-en-mision">El segundo vehículo pierde al primero<small>23</small></a></li><li><a href="#b4-incidencias">Avería y aviso al convoy<small>24</small></a></li><li><a href="#b4-apartado-3">Recuperar la unidad a pie<small>25</small></a></li><li><a href="#b4-formaciones">Formaciones y maniobras del convoy<small>26</small></a></li></ol></div>
+<div><h3><a href="#glosario">Anexo · Vocabulario de patrulla</a></h3></div></div></nav>
+<article class="hoja book-text" id="b1-apartado-1"><div class="folio libro-folio"><span>B1 · Infante básico</span><span>Hoja 01</span></div>
+<div class="apertura"><strong>Infante básico</strong><p>En una partida cooperativa, el fusilero se integra en una escuadra. Antes de salir, necesita saber a quién sigue, con quién trabaja y qué tarea le corresponde.</p><figure class="metopa"><img src="recursos/metopa-b1.png" alt=""><figcaption><b>Metopa B1 · Infante básico</b><small>Distintivo que aparece bajo tu nick en el foro al obtener esta metopa.</small></figcaption></figure></div>
+<h2 id="b1-ref-b1-1">Tu puesto en la escuadra</h2>
+<p class='opening'>Al incorporarte, el jefe te asigna un numeral, un compañero y un puesto en la formación. El numeral sirve para llamarte por radio. El puesto indica dónde vas respecto a los demás; el sector, qué parte del terreno te toca observar.</p>
+<blockquote><strong>Ejemplo de asignación.</strong> «Vega, eres Dos. Vas detrás de Uno, que es tu binomio. En este tramo observa el lado derecho del camino».</blockquote>
+<h3 id="b1-disciplina">Disciplina en cooperativo</h3><p>En la zona de reunión mantén el arma en una dirección segura y espera la orden de salida. Si alguien atraviesa tu línea de tiro, interrumpe el fuego. Antes de cambiar de rol, recoger el arma de otro jugador o separarte a por munición, avisa al jefe. En una misión sin reaparición, acuerda también qué hará la unidad si pierde a un miembro.</p>
+<p><strong>Del binomio al pelotón.</strong> Dos compañeros forman un binomio. El jefe de escuadra reparte puestos y sectores entre sus equipos. Si varias escuadras trabajan juntas, el jefe de pelotón coordina sus cometidos. El numeral identifica tu puesto dentro del reparto anunciado; en caso de baja, conserva el tuyo hasta que el jefe reorganice el grupo.</p>
+<p><strong>Observa → orienta → decide → actúa (OODA).</strong> Ves a un jugador salir de un patio. Recuerdas que otra pareja está en ese lado de la calle. Mantienes el arma en dirección segura y pides identificación. Cuando la pareja responde, actualizas tu sector y continúas.</p>
+<h3>Qué tienes que saber al salir del briefing</h3>
+<p>Explica a tu binomio con tus palabras qué debe conseguir la patrulla, cuál es vuestra tarea y quién asume el mando si el jefe queda fuera. Señala dónde están las unidades amigas y qué condiciones ha dado el mando para abrir fuego. Si una silueta no se identifica, describe lo que ves y pide confirmación.</p>
+
+<h3>Antes de la patrulla</h3>
+<p>Identifica a tu jefe, tu número y tu binomio. El número permite dar una orden breve aunque dos jugadores tengan el mismo rol. Al oír el tuyo, comprueba qué puesto debes ocupar y quién se mueve contigo.</p>
+<p>Revisa el equipo según tu cometido. Comprueba que los cargadores corresponden a tu arma, que llevas el material asignado y que puedes seguir el ritmo del grupo. Si transportas munición para otro compañero, acuerda con él quién la lleva. La capacidad de la mochila no determina lo que necesitas cargar.</p>
+
+<figure class="atlas-plate"><img loading="lazy" src="recursos/b1-equipo.jpg" alt="Casco, chaleco y mochila dispuestos para su revisión"><figcaption>Equipo individual · El casco y el chaleco aportan protección. En el briefing se comprueba además quién lleva la radio, el material sanitario y la carga compartida de la escuadra.</figcaption></figure>
+<footer class="running-foot"><span>MOAA · 01</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b1-procedimientos"><div class="folio libro-folio"><span>B1 · Infante básico</span><span>Hoja 02</span></div>
+
+<h2>Equipo y responsabilidades del fusilero</h2><h3 id="b1-ref-b1-6">Equipo de combate y reparto de carga</h3><p>El fusilero necesita distinguir el equipo personal del que lleva para la escuadra. Antes de salir, localiza mapa y brújula, medio de comunicación asignado, material sanitario de la misión y munición compatible. Si el equipo comparte baterías, cargadores o material de apoyo, identifica al destinatario y avisa cuando entregues la carga.</p>
+<h3 id="b1-ref-b1-7">Arma principal y secundaria</h3><p>Comprueba qué cargadores corresponden a cada arma. Si recoges un arma diferente durante la partida, informa al jefe cuando el cambio afecte al reparto de munición.</p>
+<figure class="atlas-plate"><img loading="lazy" src="recursos/b1-armamento.jpg" alt="Equipo de arma larga y secundaria mostrado en B1"><figcaption>Equipo individual en la Academia · Antes de embarcar identifica qué munición pertenece a cada arma.</figcaption></figure>
+<h3>Observar y estimar distancias</h3><p>Si ves movimiento más allá del pueblo, sitúalo respecto de una referencia conocida y da una distancia aproximada.</p>
+<h3 id="b1-ref-b1-4">Responsabilidad sobre el sector</h3><p>Mantén a la vista la posición del compañero que limita tu sector. Antes de cruzar por delante de otro jugador, avisa y espera su confirmación. Si ambos miráis el mismo contacto, identifica qué parte del terreno acaba de quedar sin observación y comunícalo al jefe.</p>
+<footer class="running-foot"><span>MOAA · 02</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b1-apartado-2"><div class="folio libro-folio"><span>B1 · Infante básico</span><span>Hoja 03</span></div>
+
+<h2>Moverse y observar juntos</h2>
+<p class='opening'>Imagina un camino que se estrecha entre dos muros. La columna permite que todos sigan la misma traza. Al salir a terreno abierto, el guía ordena cuña. Quien marchaba detrás de él abre su ala sin cruzarse por delante del compañero. La forma que dibujáis importa menos que conservar el enlace mientras cada uno vuelve a observar el sector que le corresponde.</p>
+<h3 id="b1-ref-b1-2">Elegir la ruta y la formación</h3>
+<p>Antes de cruzar una zona abierta, localiza el siguiente punto donde podrás detenerte. Un seto puede ocultarte de la vista; una posición con protección frente al fuego permite además cubrir el movimiento de otro. Valora ambas cosas por separado.</p>
+<p>
+<strong>Columna.</strong> Sigue a quien te precede en pasos estrechos. Cada integrante gira donde giró el guía. <strong>Cuña.</strong> El guía conserva la punta y cada ala mantiene su lado. <strong>Línea.</strong> Las alas llegan a la altura del guía. Mantén la separación sin adelantarlo. Adapta el intervalo a la visibilidad y avisa si pierdes al compañero.</p>
+<figure class="atlas-plate"><img loading="lazy" src="recursos/b1-itinerario.jpg" alt="Dos trazas sobre la misma ladera, una directa y otra por la vaguada"><figcaption>Elegir una traza · Desde el mismo punto se puede seguir una ruta directa o rodear el alto. El guía anuncia el recorrido que seguirá la cola antes de perderse de vista.</figcaption></figure><h3>Durante un alto</h3>
+<p>Conserva tu sector aunque otro compañero haya visto algo en el suyo. En un perímetro, comprueba con los vecinos dónde se unen vuestros sectores. Antes de cambiar de posición, identifica a los compañeros que podrían cruzar por delante de ti.</p>
+<h3 id="b1-formas-equipo">Reconocer las formas del equipo</h3><div class="fotos-formacion"><figure class="atlas-plate"><img loading="lazy" src="recursos/b1-formacion-cuna.jpg" alt="Escuadra a pie en cuña sobre la explanada de instrucción"><figcaption><strong>Cuña</strong> · Un jugador forma la punta y los demás se reparten a ambos lados, progresivamente más atrás.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/b1-formacion-linea.jpg" alt="Escuadra a pie en línea sobre la explanada de instrucción"><figcaption><strong>Línea</strong> · Los siete jugadores se sitúan a una altura similar. Observa la separación entre compañeros a lo largo del frente.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/b1-formacion-v.jpg" alt="Escuadra a pie en cuña invertida sobre la explanada de instrucción"><figcaption><strong>Cuña invertida</strong> · Los extremos quedan adelantados y el centro retrasado. Compara la posición del centro con la primera captura.</figcaption></figure></div><details><summary><span>Comparar las seis formaciones desde arriba</span></summary><figure class="atlas-plate formas-pie"><div><div><svg viewBox="0 0 100 64" aria-hidden="true" focusable="false"><circle cx="50" cy="10" r="4.7" fill="currentColor"/><circle cx="50" cy="24" r="4.7" fill="currentColor"/><circle cx="50" cy="38" r="4.7" fill="currentColor"/><circle cx="50" cy="52" r="4.7" fill="currentColor"/></svg><strong>Columna</strong></div><div><svg viewBox="0 0 100 64" aria-hidden="true" focusable="false"><circle cx="36" cy="13" r="4.7" fill="currentColor"/><circle cx="64" cy="13" r="4.7" fill="currentColor"/><circle cx="36" cy="33" r="4.7" fill="currentColor"/><circle cx="64" cy="33" r="4.7" fill="currentColor"/><circle cx="36" cy="53" r="4.7" fill="currentColor"/><circle cx="64" cy="53" r="4.7" fill="currentColor"/></svg><strong>Doble columna</strong></div><div><svg viewBox="0 0 100 64" aria-hidden="true" focusable="false"><circle cx="14" cy="32" r="4.7" fill="currentColor"/><circle cx="38" cy="32" r="4.7" fill="currentColor"/><circle cx="62" cy="32" r="4.7" fill="currentColor"/><circle cx="86" cy="32" r="4.7" fill="currentColor"/></svg><strong>Línea</strong></div><div><svg viewBox="0 0 100 64" aria-hidden="true" focusable="false"><circle cx="50" cy="9" r="4.7" fill="currentColor"/><circle cx="24" cy="32" r="4.7" fill="currentColor"/><circle cx="76" cy="32" r="4.7" fill="currentColor"/><circle cx="50" cy="54" r="4.7" fill="currentColor"/></svg><strong>Diamante</strong></div><div><svg viewBox="0 0 100 64" aria-hidden="true" focusable="false"><circle cx="50" cy="10" r="4.7" fill="currentColor"/><circle cx="32" cy="31" r="4.7" fill="currentColor"/><circle cx="68" cy="31" r="4.7" fill="currentColor"/><circle cx="14" cy="52" r="4.7" fill="currentColor"/><circle cx="86" cy="52" r="4.7" fill="currentColor"/></svg><strong>Cuña</strong></div><div><svg viewBox="0 0 100 64" aria-hidden="true" focusable="false"><circle cx="14" cy="10" r="4.7" fill="currentColor"/><circle cx="86" cy="10" r="4.7" fill="currentColor"/><circle cx="32" cy="31" r="4.7" fill="currentColor"/><circle cx="68" cy="31" r="4.7" fill="currentColor"/><circle cx="50" cy="52" r="4.7" fill="currentColor"/></svg><strong>Cuña invertida</strong></div></div><figcaption>↑ Frente de marcha · Cada punto representa a un jugador. Las figuras muestran la forma; los efectivos y la separación se ajustan a la misión.</figcaption></figure></details><dl><dt>Doble columna y columna escalonada</dt><dd>En doble columna avanzan dos hileras. En escalonada, los puestos se alternan a ambos lados del eje de marcha. Conserva tu lado y localiza a quien marca el ritmo.</dd><dt>Línea, cuña y cuña invertida</dt><dd>En línea, los puestos quedan a una altura similar. La cuña presenta una punta adelantada; vista desde arriba, la cuña invertida abre sus dos brazos hacia el frente.</dd><dt>Diamante</dt><dd>Reconoce cuatro referencias: punta, dos costados y cierre. Si falta el jugador que cerraba, avisa para que el jefe reasigne la retaguardia.</dd></dl>
+<h3 id="b1-ref-b1-5">Avance y repliegue</h3>
+<p>En marcha continua el grupo progresa junto. En los saltos se reparten dos tareas: un elemento observa y cubre mientras el otro cambia de posición. Quien llega confirma que está listo para cubrir antes de que el compañero abandone su puesto. En el repliegue se conserva ese relevo mientras aumenta la distancia respecto al contacto.</p>
+<h3 id="b1-ref-b1-3">Seis maniobras en movimiento</h3>
+<p>Las animaciones proceden del briefing de Arma 3 del grupo. Fíjate en los puestos y los relevos para reproducir la maniobra en ambos juegos. Abre una maniobra y reproduce el ejemplo. En los dos saltos, observa dónde queda B al acabar su movimiento.</p>
+<details>
+<summary>
+<b>01</b>
+<span>
+<strong>Avance en columna</strong>
+<small>Sigue la traza del guía. Gira cuando llegues al mismo punto.</small>
+</span>
+<em>Formación</em>
+</summary>
+<div class='lesson'>
+<video controls playsinline preload='none' aria-label='Avance en columna' poster='recursos/maniobra-1.png' src='recursos/maniobra-1.mp4'>
+</video>
+</div>
+</details>
+<details>
+<summary>
+<b>02</b>
+<span>
+<strong>De columna a cuña</strong>
+<small>El guía mantiene el rumbo. Cada ala se abre por su lado.</small>
+</span>
+<em>Formación</em>
+</summary>
+<div class='lesson'>
+<video controls playsinline preload='none' aria-label='De columna a cuña' poster='recursos/maniobra-2.png' src='recursos/maniobra-2.mp4'>
+</video>
+</div>
+</details>
+<details>
+<summary>
+<b>03</b>
+<span>
+<strong>De cuña a línea</strong>
+<small>Alcanza la altura del guía y conserva la separación lateral.</small>
+</span>
+<em>Formación</em>
+</summary>
+<div class='lesson'>
+<video controls playsinline preload='none' aria-label='De cuña a línea' poster='recursos/maniobra-3.png' src='recursos/maniobra-3.mp4'>
+</video>
+</div>
+</details>
+<details>
+<summary>
+<b>04</b>
+<span>
+<strong>Salto escalonado</strong>
+<small>B alcanza a A y se detiene a su altura.</small>
+</span>
+<em>Binomio</em>
+</summary>
+<div class='lesson'>
+<video controls playsinline preload='none' aria-label='Salto escalonado' poster='recursos/maniobra-4.png' src='recursos/maniobra-4.mp4'>
+</video>
+<div class="strip">
+<figure class="panel original-step">
+<img src="recursos/relevo-1.png" alt="A avanza mientras B cubre.">
+<figcaption>
+<strong>01 · B mantiene su sector</strong>A avanza mientras B observa desde su posición.</figcaption>
+</figure>
+<figure class="panel original-step">
+<img src="recursos/relevo-2.png" alt="B se mueve para alcanzar a A.">
+<figcaption>
+<strong>02 · A está listo</strong>Al llegar, A recupera el sector y confirma que puede cubrir a B.</figcaption>
+</figure>
+<figure class="panel original-step">
+<img src="recursos/relevo-3.png" alt="Los dos quedan a la misma altura.">
+<figcaption>
+<strong>03 · B alcanza a A</strong>En un salto escalonado ambos terminan a la misma altura.</figcaption>
+</figure>
+</div>
+</div>
+</details>
+<details>
+<summary>
+<b>05</b>
+<span>
+<strong>Salto alternado</strong>
+<small>B rebasa a A. En el siguiente salto, A vuelve a ponerse delante.</small>
+</span>
+<em>Binomio</em>
+</summary>
+<div class='lesson'>
+<video controls playsinline preload='none' aria-label='Salto alternado' poster='recursos/maniobra-5.png' src='recursos/maniobra-5.mp4'>
+</video>
+</div>
+</details>
+<details>
+<summary>
+<b>06</b>
+<span>
+<strong>Repliegue por binomios</strong>
+<small>Una pareja retrocede mientras la otra permanece en posición y cubre su sector.</small>
+</span>
+<em>Escuadra</em>
+</summary>
+<div class='lesson'>
+<video controls playsinline preload='none' aria-label='Repliegue por binomios' poster='recursos/maniobra-6.png' src='recursos/maniobra-6.mp4'>
+</video>
+</div>
+</details>
+<footer class="running-foot"><span>MOAA · 03</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b1-apartado-3"><div class="folio libro-folio"><span>B1 · Infante básico</span><span>Hoja 04</span></div>
+
+<h2>Relevar, reagrupar y dar cuenta</h2>
+<p class='opening'>Un relevo tiene dos momentos distintos: llegar y estar en condiciones de cubrir. Si el primero acaba de alcanzar el muro y se gira para localizar a su compañero, todavía no observa su sector. El segundo espera la confirmación acordada. La misma distinción sirve al reagruparse: ver a alguien llegar no equivale a haber contado a toda la escuadra.</p>
+<h3>Preparar el relevo</h3>
+<p>Tu compañero llega al muro, pero todavía está buscando su sector. Si sales en ese instante, los dos estaréis ocupados en moveros o colocaros. Espera a que confirme que puede cubrirte. En un salto escalonado te detienes a su altura. En uno alternado lo rebasas y ocupas el siguiente puesto.</p>
+<h3>Trabajar con un especialista</h3>
+<p>Si llevas munición para el lanzador, acuerda el reparto antes de la marcha y avisa si os separáis. Si acompañas a un tirador de precisión, dad primero una referencia que los dos reconozcáis y después la distancia estimada. Así podréis comprobar si estáis observando el mismo punto.</p>
+<h3>Si un compañero queda fuera</h3>
+<p>Da su última posición confirmada e indica si lo ves o solo has perdido contacto con él. Comunica si responde y si puede moverse, cuando puedas comprobarlo en la simulación. Un jugador mantiene el enlace con el sanitario; el resto conserva los sectores asignados. Tras el incidente, cada binomio confirma personal, munición disponible y material perdido antes de reanudar la marcha.</p>
+<footer class="running-foot"><span>MOAA · 04</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b1-en-mision"><div class="folio libro-folio"><span>B1 · Infante básico</span><span>Hoja 05</span></div>
+
+<h2>El guía desaparece tras una tapia</h2>
+<p>La cabeza de la columna dobla una esquina. El último binomio todavía no ha llegado al giro. Si el guía acelera y el último corta por otra calle, la escuadra acaba en dos rutas distintas. El último comunica la referencia que conserva; el guía reduce la marcha y comprueba que la cola ha pasado el mismo punto. El guía conserva el enlace con la cola antes de iniciar el siguiente tramo.</p>
+<h3 id="b1-binomio-entorno">Del campo al interior de un edificio</h3><p>En terreno abierto puedes seguir al guía por una loma o una línea de árboles. En una población, una esquina basta para perderlo. Antes de cruzar el acceso, identifica el edificio y confirma por voz cercana o con una señal acordada que tu pareja está lista. Si el compañero desaparece de tu vista, indica tu última referencia y espera instrucciones antes de cambiar de habitación.</p><p>Una señal necesita un destinatario que pueda verla. Si el guía levanta la mano para detenerse y el último jugador está detrás del muro, transmite el alto hacia atrás. Comprueba que la cola también se ha detenido.</p>
+<footer class="running-foot"><span>MOAA · 05</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b1-incidencias"><div class="folio libro-folio"><span>B1 · Infante básico</span><span>Hoja 06</span></div>
+
+<h2>Incorporación, reunión e identificación</h2>
+<h3>Incorporarse a una patrulla en marcha</h3>
+<p>Llegas cuando la escuadra ya se ha desplazado. Antes de seguir al primer uniforme que veas, contacta con tu jefe. Pide tres datos: el punto donde incorporarte, el indicativo de quien te recibirá y tu puesto al llegar. Una vez reunido, confirma tu nombre. Así quien lleva el recuento sabe que estás con la unidad y puede asignarte un sector.</p>
+<h3>Si la escuadra se dispersa</h3><p>Antes de partir, localiza el punto de reunión y escucha qué debes hacer al llegar. «El cruce» resulta ambiguo si la ruta pasa por tres. «La entrada oeste del cementerio» identifica un acceso que el grupo puede reconocer. Si solo lo habéis visto en el mapa, el guía debe comprobar sobre el terreno que se distingue. Si el jefe lo cambia, confirma el nuevo lugar.</p><p>Al reunirte, preséntate ante quien lleva el recuento y ocupa el sector que te indique. Distingue a los presentes de quienes solo han contestado por radio. Si sois tres allí y un cuarto está en camino, el parte es «Tres en el punto. Cuatro tiene enlace y sigue en ruta».</p>
+<h3>Identificar antes de actuar</h3>
+<p>Ves una silueta cruzar un camino cerca de donde opera otra pareja. Distingue la observación («una persona cruza hacia el bosque») de la identificación. Contrasta ubicación, equipo visible y posición conocida de los aliados. Si persiste la duda, informa y conserva el contacto visual. El briefing determina las condiciones de la misión para abrir fuego.</p>
+<footer class="running-foot"><span>MOAA · 06</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b2-apartado-1"><div class="folio libro-folio"><span>B2 · Orientación</span><span>Hoja 07</span></div>
+<div class="apertura"><strong>Orientación</strong><p>Para seguir una ruta necesitas un punto de partida, un rumbo y una referencia que puedas reconocer al llegar.</p><figure class="metopa"><img src="recursos/metopa-b2.png" alt=""><figcaption><b>Metopa B2 · Orientación</b><small>Distintivo que aparece bajo tu nick en el foro al obtener esta metopa.</small></figcaption></figure></div>
+<h2 id="b2-ref-b2-1">Del terreno al mapa</h2>
+<p class='opening'>En un mapa el norte sirve de referencia común aunque dos jugadores miren en direcciones opuestas. Empieza por orientar el mapa y compara elementos grandes: curso del río, trazado de la carretera y forma de la ladera. Después busca el objeto pequeño. Dos iglesias parecidas dejan de confundirse si una está junto al río y la otra sobre una loma.</p>
+<h3>La leyenda y la escala</h3><p>Antes de interpretar una marca, consulta la leyenda del mapa que usa la misión. Distingue elementos permanentes del terreno de anotaciones de los jugadores. Una marca de contacto sin hora puede seguir visible después de que el contacto haya desaparecido. Indica quién lo vio y cuándo.</p>
+
+<h3 id="b2-ref-b2-2">Leer el terreno</h3>
+<p>Empieza por elementos que puedas reconocer tanto en el mapa como a simple vista: una iglesia aislada, un cruce o la forma de una loma. Las curvas de nivel unen puntos de igual altitud. Si aparecen juntas, la pendiente es mayor. Comprueba si el camino sube o baja como esperabas.</p>
+<figure class="plate">
+<img src="recursos/relieve.png" alt="Relación entre la forma del relieve y las curvas de nivel">
+<figcaption>Lámina B2 · Interpretación del relieve.</figcaption>
+</figure>
+<h3>Dar una posición</h3>
+<p>Lee primero la coordenada hacia el este y después hacia el norte. En la lámina de Montignac, 051 069 identifica la cuadrícula de la granja. Para concretar el lugar dentro de ella, añade una referencia inequívoca, por ejemplo el lado del edificio junto al que estás. Acuerda con el grupo la precisión que vais a utilizar.</p>
+
+<h3>Localizar la granja al este de Montignac</h3><p>Busca la palabra <em>farm</em> y el símbolo azul inmediatamente debajo. Sigue su columna hasta el margen superior: 51. Sigue su fila hacia la izquierda: 69. En la cuadrícula de cien metros se transmite <strong>051 069</strong>. Conserva los ceros iniciales y lee cada cifra por separado.</p>
+<figure class="atlas-plate"><div class="mapa-guiado"><img src="recursos/everon-montignac.png" width="636" height="490" alt="Granja de Montignac, al este del pueblo, en la columna 51 y la fila 69."><svg viewBox="0 0 636 490" aria-hidden="true"><g fill="none" stroke="#16242c" stroke-width="7"><path d="M517 56V277 M67 316H516V308"/></g><g fill="none" stroke="#ffcc70" stroke-width="3" stroke-dasharray="8 5"><path d="M517 56V277 M67 316H516V308"/></g><g fill="none" stroke="#123641" stroke-width="3"><rect x="491" y="7" width="51" height="46" rx="4"/><rect x="7" y="293" width="53" height="48" rx="4"/><circle cx="516" cy="293" r="12"/></g></svg></div>
+<div class="lectura-grid"><span>Columna <b>051</b></span><span>Fila <b>069</b></span><span>Referencia <b>Granja</b></span></div><figcaption>Everon · Montignac. La traza vertical parte de la columna; la horizontal recorre la fila. El círculo rodea el símbolo azul de la granja. Cartografía del mosaico de capturas de Arma Reforger de Heisenburger.</figcaption></figure>
+<details><summary><span>Consultar el mapa original sin trazas</span></summary><div class="grid-sheet" tabindex="0" aria-label="Mapa de Montignac. En pantallas pequeñas, desplaza el mapa horizontalmente."><img loading="lazy" src="recursos/everon-montignac.png" alt="Montignac en Everon: cuadrícula original, carretera principal y granja al este"></div></details><p>Hay otro símbolo azul al noroeste del pueblo, en 047 072. Decir solo «el símbolo azul cerca de Montignac» permite confundirlos. La cuadrícula y la referencia «granja al este del pueblo» identifican el mismo lugar por dos vías.</p><h3>Ejemplo resuelto · Comparar dos laderas</h3>
+<p>Dos caminos unen cotas de 100 y 140 metros. Uno cruza las curvas en un tramo corto; el otro gana la misma altura a lo largo de un rodeo. El primero sube con más pendiente de media. Antes de decidir, mira la escala y las cotas rotuladas: al cambiar el nivel de detalle pueden aparecer curvas intermedias.</p>
+<h3 id="b2-ref-b2-4">De tu mapa al mapa del destinatario</h3><p>El GPS, cuando esté disponible, ofrece una lectura de posición. Contrástala con el terreno y conserva los ceros iniciales al transmitirla. En Arma 3, el canal elegido determina quién ve una marca compartida. Si una escuadra marca su posición en el canal de grupo, otra escuadra puede no verla. Da también la cuadrícula por la red acordada y pide lectura de vuelta. En Reforger, confirma qué ayudas y marcas comparten realmente ambas unidades.</p>
+<footer class="running-foot"><span>MOAA · 07</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b2-incidencias"><div class="folio libro-folio"><span>B2 · Orientación</span><span>Hoja 08</span></div>
+
+<h2>Distancia y rumbo desde un origen conocido</h2>
+<h3>Medir un tramo antes de salir</h3>
+<p>Lee la distancia representada por cada cuadro en el mapa que tienes delante. Si la escala indica 100 metros por cuadro y el camino recorre tres cuadros hacia el este, ese tramo recto mide unos 300 metros. Una carretera con curvas será más larga. Usa ese cálculo para anticipar el siguiente cruce, y confirma con el terreno que has llegado al correcto.</p>
+<h3>Compartir un rumbo sin ambigüedad</h3>
+<p>«Rumbo 090 desde la iglesia» fija una dirección hacia el este y un origen. Dos patrullas en lugares distintos que miren al 090 verán paisajes diferentes. Para señalar un objeto a otra unidad, acompaña el rumbo con tu posición y una referencia del terreno.</p>
+<footer class="running-foot"><span>MOAA · 08</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b2-apartado-2"><div class="folio libro-folio"><span>B2 · Orientación</span><span>Hoja 09</span></div>
+
+<h2>Preparar y seguir un itinerario</h2>
+<p class='opening'>Divide la ruta en tramos que puedas reconocer. Para llegar a la granja de Montignac, identifica primero la salida del pueblo y después el acceso a la granja. Antes de abandonar la carretera, contrasta la dirección con la posición de los edificios en el mapa.</p>
+<h3 id="b2-ref-b2-3">Seguir un rumbo</h3>
+<p>Orienta el mapa, identifica el destino y toma con la brújula la dirección del siguiente tramo. Escoge un objeto visible en esa dirección y avanza hasta él. Allí vuelve a comprobar el rumbo. Si la misión proporciona GPS, contrasta su lectura con el terreno. Con mapa y brújula, utiliza una segunda referencia para verificar la primera.</p>
+<figure class="atlas-plate"><img loading="lazy" src="recursos/b2-brujula.jpg" alt="Vista de la brújula con su línea de mira y su escala"><figcaption>Brújula · Alinea la referencia visible con la mira antes de leer la marcación. Captura de archivo de la Academia.</figcaption></figure>
+<footer class="running-foot"><span>MOAA · 09</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b2-en-mision"><div class="folio libro-folio"><span>B2 · Orientación</span><span>Hoja 10</span></div>
+
+<h2>Encontrar la salida de un pueblo</h2>
+<p>Tanto en Everon o Arland como en un terreno de Arma 3, un cruce reconocible permite fijar el punto de partida en el mapa. El guía identifica la salida con dos referencias sucesivas: qué carretera va a seguir y qué elemento encontrará después. Si ambas salidas tienen casas a la derecha, esa pista aporta poco. La dirección del camino y el edificio que debería aparecer más adelante permiten distinguirlas. La salida correcta se confirma antes de dejar atrás el pueblo.</p>
+<footer class="running-foot"><span>MOAA · 10</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b2-procedimientos"><div class="folio libro-folio"><span>B2 · Orientación</span><span>Hoja 11</span></div>
+
+<h2>Obstáculos y visibilidad reducida</h2><h3>Rodear un obstáculo y retomar la ruta</h3><p>Si una vaguada o una cerca interrumpe el tramo, identifica un punto reconocible al otro lado. Conserva la última posición segura y divide el rodeo en tramos cortos. Al reencontrar la ruta, vuelve a comprobar tanto el rumbo como el lugar donde te reincorporas. Caminar en la dirección correcta desde otra carretera puede llevarte a un destino distinto.</p>
+<div class="atlas-pair"><figure class="atlas-plate"><img loading="lazy" src="recursos/b2-rodeo.jpg" alt="Desvío alrededor de un obstáculo"><figcaption>Rodeo · La referencia elegida conserva la dirección del tramo original.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/b2-retorno.jpg" alt="Retorno al itinerario original"><figcaption>Retorno · Comprueba el punto de reentrada antes de continuar.</figcaption></figure></div>
+<h3 id="b2-ref-b2-7">Orientación con visibilidad reducida</h3><p>Al oscurecer desaparecen referencias lejanas. Acorta los tramos y emplea límites continuos que puedas reconocer: una pista, el borde de un bosque o la orilla de un río. Sol y estrellas pueden orientar de forma aproximada si están visibles; para comunicar una posición precisa contrasta el terreno con la cuadrícula y la brújula.</p>
+<footer class="running-foot"><span>MOAA · 11</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b2-apartado-3"><div class="folio libro-folio"><span>B2 · Orientación</span><span>Hoja 12</span></div>
+
+<h2>Resolver una posición dudosa</h2>
+<p class='opening'>Una coordenada localiza una zona; su precisión depende de los dígitos y de la cuadrícula del mapa. Lee hacia la derecha y luego hacia arriba, conservando los ceros iniciales. En el ejemplo 074-975, intercambiar los dos bloques cambia el lugar. Comprueba que la zona señalada contiene la referencia que acabas de describir.</p>
+<div class="atlas-pair"><figure class="atlas-plate"><img loading="lazy" src="recursos/b2-torre-terreno.jpg" alt="Torre de comunicaciones visible por encima de los árboles"><figcaption>1 · En el terreno, la torre sobresale del bosque. Localiza una segunda referencia antes de dar por segura tu posición.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/b2-torre-mapa.jpg" alt="La torre anterior identificada sobre la cartografía de la misión"><figcaption>2 · En el mapa, el símbolo fija la posición de la torre. Tu patrulla se encuentra en la dirección inversa al rumbo que tomaste hacia ella.</figcaption></figure></div><h3>Dos cruces en la misma cuadrícula</h3>
+<p>Dar solo la cuadrícula puede dejar dos destinos posibles. Añade qué ramal debéis tomar y qué veréis al llegar. «Cruce al este del pueblo, junto al acceso de la granja» permite a otro jugador comprobar la elección en su propio mapa.</p>
+<h3 id="b2-ref-b2-6">Recuperar la posición</h3>
+<p>Parte del último punto que reconociste con seguridad. Con una sola referencia conocida puedes estimar tu posición si también estimas su distancia. Con dos referencias separadas, toma el rumbo hacia cada una y prolonga en el mapa las direcciones inversas desde ambos objetos. Su cruce aproxima tu posición. Si discrepa del terreno, busca una tercera referencia.</p>
+
+<h3>Del rumbo observado al trazo en el mapa</h3><p>La brújula mide desde ti hacia el objeto. En el mapa conoces el objeto y buscas tu posición, así que trazas en sentido contrario. Para invertir un rumbo inferior a 180°, suma 180°. Desde 180° en adelante, resta 180°.</p><ol><li><strong>Mezquita.</strong> En el ejemplo de Armados, el observador la ve al 222°. Desde el símbolo de la mezquita traza hacia 042°.</li><li><strong>Cruce de carreteras.</strong> Lo ve al 140°. Desde el cruce traza hacia 320°.</li><li><strong>Posición estimada.</strong> Sigue ambas líneas desde sus respectivos orígenes. Su intersección sitúa al observador en la cuadrícula 110 031.</li></ol><figure class="atlas-plate"><div class="grid-sheet" tabindex="0" aria-label="Mapa del cruce de rumbos. Desplazamiento horizontal en móvil."><img loading="lazy" src="recursos/b2-cruce-rumbos.jpg" width="1280" height="720" alt="Dos trazas negras convergen en la marca roja de posición al norte del mapa."></div><figcaption>Archivo de la Academia · Esbekistán, Arma 2 OA. La marca roja señala el cruce. En Everon puedes aplicar la misma lectura con dos referencias reconocibles de tu mapa.</figcaption></figure>
+<h3>Cuando algo no encaja</h3>
+<p>Esperabas subir y el camino desciende. Detente en el último punto identificable y contrasta el relieve con otra referencia. Continuar por el camino equivocado aumenta la zona que después tendrás que revisar.</p>
+<h3>Plan de reunión si os separáis</h3>
+<p>Antes de partir, ambos debéis señalar el mismo punto en vuestros mapas y saber cuándo acudir y cuánto esperar allí según el briefing. Si desaparece el contacto visual, distingue la última posición segura del lugar donde crees estar. Comunica la diferencia y aplica el plan acordado. Dos jugadores buscándose a la vez pueden cruzarse sin verse.</p>
+<footer class="running-foot"><span>MOAA · 12</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b3-apartado-1"><div class="folio libro-folio"><span>B3 · Comunicaciones</span><span>Hoja 13</span></div>
+<div class="apertura"><strong>Comunicaciones</strong><p>Una transmisión sirve cuando el destinatario sabe quién le llama, qué ha ocurrido y qué debe hacer con la información.</p><figure class="metopa"><img src="recursos/metopa-b3.png" alt=""><figcaption><b>Metopa B3 · Comunicaciones</b><small>Distintivo que aparece bajo tu nick en el foro al obtener esta metopa.</small></figcaption></figure></div>
+<h2 id="b3-ref-b3-1">Compartir una red</h2>
+<p class='opening'>Una red es una conversación compartida: mientras transmites, otra pareja puede estar esperando para dar un aviso. Antes de hablar decide a quién necesitas, qué hecho debe conocer y qué respuesta esperas. Si basta con que tu compañero se aparte para dejar paso, usa la voz cercana. Si el jefe debe cambiar el punto de reunión, usa la red acordada.</p>
+<figure class="radio-intro"><img src="recursos/b3-operador.jpg" alt="Operador transmitiendo desde el terreno, fotografía del B3 de Grupo Armados"><figcaption><b>Antes de transmitir</b><ol><li>Escucha si la red está libre.</li><li>Identifica a quién debe llegar el aviso.</li><li>Prepara el dato que ese destinatario necesita.</li></ol></figcaption></figure>
+<h3>Entrar en la red</h3>
+<p>Antes de salir, conoce tu indicativo, el de tu jefe y la red que comparte tu escuadra. Haz una prueba de radio con el destinatario. Usa la voz directa cuando el compañero esté a tu lado y reserva la red para quienes necesiten oír el mensaje.</p>
+<h3 id="b3-check-in" tabindex="-1">Check-in por numerales</h3><p>En Grupo Armados, el líder pide el check-in por la red acordada. Cada miembro escucha a quien le precede y responde únicamente con su número. El orden es el de los numerales asignados en el briefing.</p><figure class="transmision"><figcaption>Red de escuadra · Cuatro puestos asignados</figcaption><ol><li class="origen"><div><b>Líder</b><small>Abre el check-in</small></div><p>«Bravo, check-in.»</p></li>
+<li class="destino"><div><b>Uno</b><small>Puesto 1</small></div><p>«Uno.»</p></li>
+<li class="destino"><div><b>Dos</b><small>Puesto 2</small></div><p>«Dos.»</p></li>
+<li class="destino"><div><b>Tres</b><small>Puesto 3</small></div><p>«Tres.»</p></li>
+<li class="destino"><div><b>Cuatro</b><small>Puesto 4</small></div><p>«Cuatro.»</p></li></ol></figure><p>El líder contrasta las respuestas con la lista de puestos. Si queda un numeral pendiente, lo llama de forma individual. El check-in confirma quién responde por esa red; el recuento en el punto de reunión confirma quién está allí.</p>
+<h3 id="b3-ref-b3-2">Abrir una comunicación entre unidades</h3><p>Si Alfa necesita pasar un mensaje ordinario a Bravo, primero llama a Bravo y se identifica. Espera el «adelante» antes de dar el mensaje. Si Bravo pide que esperes, deja la red libre hasta que te dé paso.</p><figure class="transmision"><figcaption>Red entre unidades · Cambio de punto de reunión</figcaption><ol>
+<li class="origen"><div><b>Alfa</b><small>Llama</small></div><p>«Bravo, de Alfa. Cambio.»</p></li>
+<li class="destino"><div><b>Bravo</b><small>Da paso</small></div><p>«Adelante, Alfa.»</p></li>
+<li class="origen"><div><b>Alfa</b><small>Transmite</small></div><p>«Nuevo punto de reunión en la entrada norte de la iglesia. Cambio.»</p></li>
+<li class="destino"><div><b>Bravo</b><small>Devuelve el punto</small></div><p>«Recibido. Entrada norte de la iglesia. Cambio.»</p></li>
+<li class="origen"><div><b>Alfa</b><small>Verifica y cierra</small></div><p>«Correcto. Corto.»</p></li></ol></figure>
+<footer class="running-foot"><span>MOAA · 13</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b3-procedimientos"><div class="folio libro-folio"><span>B3 · Comunicaciones</span><span>Hoja 14</span></div>
+
+<h2>Disciplina y comprobación de radio</h2><h3>Quién transmite y quién escucha</h3><p>La red de escuadra une a sus miembros. El enlace con otra unidad corresponde al jefe o a quien este designe. Si el jefe recibe un mensaje externo, mantén libre la red que necesita para responder. Si dos transmisiones se pisan, deja un intervalo para que el destinatario indique a quién da paso.</p>
+<h3>Indicativos, claves y palabras difíciles</h3><p>El indicativo identifica a la estación; las claves del briefing identifican lugares, cometidos o situaciones. En el vocabulario de la Academia, «Mike» puede designar al sanitario. Si otra unidad no comparte esa clave, pide un sanitario en lenguaje claro. Para deletrear un indicativo o una referencia escrita, utiliza el alfabeto fonético: la letra M se transmite «Mike». El contexto debe dejar claro si estás deletreando o designando un cometido.</p>
+<h3>Comprobación de señal</h3><p>El check-in identifica numerales presentes en la red. Para comprobar un enlace concreto, llama al corresponsal y pregúntale cómo te recibe. Informa de la intensidad y la claridad que realmente percibes. Una voz fuerte puede seguir siendo ininteligible.</p>
+<figure class="transmision"><figcaption>Comprobación de radio · Dos estaciones</figcaption><ol><li class="origen"><div><b>Bravo Dos</b><small>Solicita comprobación</small></div><p>«Bravo Uno, aquí Bravo Dos. Comprobación de radio. ¿Cómo me recibe? Cambio.»</p></li><li class="destino"><div><b>Bravo Uno</b><small>Informa de la recepción</small></div><p>«Bravo Dos, aquí Bravo Uno. Le recibo alto y claro. ¿Cómo me recibe? Cambio.»</p></li><li class="origen"><div><b>Bravo Dos</b><small>Confirma el enlace inverso</small></div><p>«Alto y claro. Corto.»</p></li></ol></figure>
+<h3 id="b3-ref-b3-5">Radio personal, de mochila y de vehículo</h3><p>La radio personal enlaza al puesto con su equipo. Cuando la misión dispone de otra radio para mando o de un equipo instalado en el vehículo, acuerda quién lo atiende. En Arma 3 los procedimientos de TFAR o ACRE dependen del mod; en Reforger cuenta el equipo efectivo del escenario. Comprueba el enlace una vez fuera del vehículo si vas a depender de él tras desembarcar.</p>
+<footer class="running-foot"><span>MOAA · 14</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b3-apartado-2"><div class="folio libro-folio"><span>B3 · Comunicaciones</span><span>Hoja 15</span></div>
+
+<h2>Describir y confirmar</h2>
+<p class='opening'>Un aviso útil permite a otra persona reconocer lo observado. «Movimiento allí» depende de ver tu gesto. «Una persona junto a la entrada de la granja, se mueve hacia el pueblo» conserva su significado a distancia. Si pierdes de vista a la persona, actualiza su última posición observada en vez de describir como cierto por dónde supones que siguió.</p>
+<h3>Comunicar un contacto</h3>
+<p>Describe lo que ves, su dirección y la distancia aproximada. Usa un punto de referencia que también vea quien escucha. «Dos personas armadas, norte, unos 200 metros, junto al muro blanco». Si hay dudas sobre su identidad, exprésalas. Una dirección relativa como «a mi izquierda» solo funciona si ambos compartís orientación.</p>
+<h3>Si el aviso llega con retraso</h3>
+<p>Un avistamiento de hace tres minutos y un contacto que sigues viendo exigen decisiones distintas. Al retransmitir un aviso, conserva quién lo observó, a qué hora y qué estaba haciendo entonces. El formato SALUTE ayuda a ordenar cantidad, actividad, lugar, unidad, hora y equipo. En una llamada breve selecciona los datos que permiten situar el contacto. Una unidad desconocida se comunica como tal.</p>
+<p>Por ejemplo, a las 18:45 el enlace recupera la radio: «Bravo Uno, aquí Bravo Dos. Última visual a las 18:42: dos personas con fusil salían de la granja hacia el pueblo. Bando sin identificar. Sin contacto visual actual. Cambio».</p><h3 id="b3-ref-b3-3">Fraseología y deletreo</h3>
+<p>«Recibido» confirma recepción. «Afirmativo» y «negativo» responden a una pregunta. «Cambio» cede el turno y «corto» cierra el intercambio. Para distinguir letras parecidas usa el alfabeto fonético; al dar una cuadrícula, separa los bloques y comprueba la lectura de vuelta.</p>
+<p><a href="#b3-alfabeto">Ver la hoja de deletreo A–Z y los ejemplos de radio</a></p>
+<h3>Confirmar una orden</h3><p>Devuelve la acción asignada y el dato cuyo error cambiaría la maniobra. Si te ordenan esperar en la orilla norte del río, confirma «Mantengo la orilla norte». Un simple «recibido» acredita recepción, pero deja sin comprobar qué orilla has entendido.</p>
+<h3>La referencia debe servir a quien escucha</h3>
+<p>Desde el otro lado del valle, «a la derecha del árbol» puede señalar otro sitio. Da un rumbo o una referencia fija. Si cambia la situación durante el aviso, actualiza el dato que ha cambiado en vez de repetir todo el mensaje.</p>
+<figure class="transmision">
+<figcaption>Dentro de Bravo · Aviso al jefe de escuadra</figcaption>
+<ol>
+<li class="origen">
+<div><b>Dos</b><small>Da el contacto</small></div>
+<p>«Aquí Dos. Dos personas con fusil en la entrada de la granja. Desde la iglesia, cero cuatro cinco grados, unos doscientos metros. Bando sin identificar.»</p>
+</li>
+<li class="destino">
+<div><b>Líder</b><small>Da una orden</small></div>
+<p>«Dos, mantén observación desde la iglesia. Avisa si salen de la granja.»</p>
+</li>
+<li class="origen">
+<div><b>Dos</b><small>Confirma la tarea</small></div>
+<p>«Aquí Dos. Mantengo observación. Avisaré si salen.»</p>
+</li>
+</ol>
+</figure>
+<p>Dentro de la escuadra, Dos abre con su numeral y da el aviso directamente. El jefe nombra a Dos al asignarle la tarea. Ambos pueden situar la observación porque Dos da el origen de la marcación (la iglesia) y una referencia en el destino (la entrada de la granja). Ver un fusil permite informar de que van armados; el bando sigue sin identificar.</p>
+<h3>Cuando solo falla media coordenada</h3><p>Bravo Uno transmite la cuadrícula de la granja de Montignac que aparece en B2 (051 069). Dos oye 051 y pierde el segundo bloque. Para evitar que el otro operador repita todo el parte, Dos identifica el fragmento que falta.</p><figure class="transmision"><figcaption>Lectura de vuelta · Se pierde el segundo bloque</figcaption><ol><li class="origen"><div><b>Bravo Dos</b><small>Pide solo el dato perdido</small></div><p>«Bravo Uno, aquí Bravo Dos. Recibido cero cinco uno. Repita segundo bloque. Cambio.»</p></li>
+<li class="destino"><div><b>Bravo Uno</b><small>Repite</small></div><p>«Segundo bloque: cero seis nueve. Cambio.»</p></li>
+<li class="origen"><div><b>Bravo Dos</b><small>Devuelve la cuadrícula</small></div><p>«Cero cinco uno, cero seis nueve. Cambio.»</p></li>
+<li class="destino"><div><b>Bravo Uno</b><small>Verifica y cierra</small></div><p>«Correcto. Corto.»</p></li></ol></figure>
+<footer class="running-foot"><span>MOAA · 15</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b3-incidencias"><div class="folio libro-folio"><span>B3 · Comunicaciones</span><span>Hoja 16</span></div>
+
+<h2>Avisar de una baja y pedir recogida</h2>
+<h3 id="b3-asistencia-juego">Asistencia y recogida en el juego</h3><p>Antes de salir, confirma quién lleva material sanitario y qué acciones permite el escenario. Si cae un jugador, identifica su posición, comprueba si responde y comunica lo que muestra el simulador. Aplica solo la asistencia que corresponda a tu rol en esa partida. Deja a una persona el enlace con el sanitario y comunica cualquier cambio de ubicación.</p><p>Para pedir recogida, facilita el número de jugadores, el punto accesible al vehículo y quién lo recibirá. Si el sanitario ya está atendiendo y solo falta transporte, pide transporte expresamente. El responsable del vehículo confirma el punto antes de salir.</p>
+<h3>Comunicar una baja durante la partida</h3>
+<p>Si un jugador cae y queda fuera de tu vista, comunica la última posición comprobada. Si lo tienes delante, informa de lo que observas en la partida, de cómo llegar y de qué apoyo requiere la escuadra. «Bravo Uno, aquí Bravo Dos. Un compañero caído en el patio norte de la iglesia. Acceso por la verja oeste. Solicito sanitario. Cambio». Una sola persona mantiene el enlace para que dos avisos sobre el mismo jugador no parezcan dos bajas.</p>
+<footer class="running-foot"><span>MOAA · 16</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b3-en-mision"><div class="folio libro-folio"><span>B3 · Comunicaciones</span><span>Hoja 17</span></div>
+
+<h2 id="b3-ref-b3-7">Tu compañero te oye, el otro vehículo no</h2>
+<p>En Arma 3 con comunicación nativa, hablar en el canal de vehículo llega a sus ocupantes. Para avisar al segundo vehículo necesitas una vía que comparta el destinatario. En Reforger distingue entre hablar cerca del compañero y transmitir por la radio en la frecuencia acordada. Antes de partir, pide una respuesta a alguien del segundo vehículo. Oír al jugador sentado al lado solo confirma el enlace local. Si la misión usa otras radios, comprobad el enlace con el sistema del servidor.</p>
+<footer class="running-foot"><span>MOAA · 17</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b3-apartado-3"><div class="folio libro-folio"><span>B3 · Comunicaciones</span><span>Hoja 18</span></div>
+
+<h2>Recuperar el enlace y dar un parte</h2>
+<p class='opening'>Distingue que alguien te oiga de que la orden haya quedado clara. Si la respuesta llega entrecortada, repite el dato decisivo. Si no llega ninguna, aplica la alternativa ensayada. Cuando una tercera unidad retransmita, conserva el origen del aviso para que una observación antigua no parezca una confirmación nueva.</p>
+<h3>Cuando nadie responde</h3>
+<p>Acordad antes de salir qué alternativa usaréis si falla la radio. Puede ser la voz del binomio, otra unidad que retransmita o una señal visible ya ensayada. Si se pierde la red principal, la respuesta del destinatario por la vía alternativa confirma que el enlace se ha recuperado.</p>
+<h3>Pasar un mensaje por una tercera estación</h3><p>Alfa y Charlie han perdido el enlace directo. Bravo oye a ambos. Cuando cada estación le dé paso, Bravo identifica de quién procede el mensaje y devuelve la confirmación a su origen.</p><figure class="transmision"><figcaption>Retransmisión · Intercambios con enlace establecido</figcaption><ol><li class="origen"><div><b>Alfa → Bravo</b><small>Encarga el aviso</small></div><p>«Retransmita a Charlie: reunión en la entrada oeste del cementerio. Solicito confirmación. Cambio.»</p></li><li class="destino"><div><b>Bravo → Alfa</b><small>Acusa recibo</small></div><p>«Recibido. Retransmito a Charlie. Corto.»</p></li><li class="origen"><div><b>Bravo → Charlie</b><small>Identifica el origen</small></div><p>«Mensaje de Alfa: reunión en la entrada oeste del cementerio. Confirme punto. Cambio.»</p></li><li class="destino"><div><b>Charlie → Bravo</b><small>Devuelve el lugar</small></div><p>«Recibido. Entrada oeste del cementerio. Corto.»</p></li><li class="origen"><div><b>Bravo → Alfa</b><small>Devuelve la confirmación</small></div><p>«Charlie confirma reunión en la entrada oeste del cementerio. Cambio.»</p></li><li class="destino"><div><b>Alfa → Bravo</b><small>Cierra</small></div><p>«Recibido. Corto.»</p></li></ol></figure>
+<h3>Dar un parte de estado</h3>
+<p>Separa lo confirmado de lo desconocido. «Aquí Dos. Tres de cuatro reunidos en el cruce norte. Falta Vega. Última visual en la iglesia. A los tres reunidos nos queda un cargador por persona». Así el jefe sabe a quién localizar y qué apoyo hace falta.</p>
+<footer class="running-foot"><span>MOAA · 18</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b3-alfabeto"><div class="folio libro-folio"><span>B3 · Comunicaciones</span><span>Hoja 19</span></div>
+
+<div class="radio-cabecera"><div class="radio-titulo"><img class="radio-marca" src="recursos/armados.webp" alt="Grupo Armados"><p class="radio-serie">Academia MOAA · Transmisiones</p><h2>Alfabeto fonético de radio</h2></div><img class="radio-foto" src="recursos/b3-operador.jpg" alt="" width="289" height="403"></div>
+<p class="opening">Deletrea las letras de la marca tal como aparecen en el mapa. Lee los números cifra a cifra, incluidos los ceros iniciales.</p>
+<ul class="alfabeto" aria-label="Alfabeto fonético de la A a la Z"><li><b>A</b><span>Alfa</span></li>
+<li><b>B</b><span>Bravo</span></li>
+<li><b>C</b><span>Charlie</span></li>
+<li><b>D</b><span>Delta</span></li>
+<li><b>E</b><span>Echo</span></li>
+<li><b>F</b><span>Foxtrot</span></li>
+<li><b>G</b><span>Golf</span></li>
+<li><b>H</b><span>Hotel</span></li>
+<li><b>I</b><span>India</span></li>
+<li><b>J</b><span>Juliett</span></li>
+<li><b>K</b><span>Kilo</span></li>
+<li><b>L</b><span>Lima</span></li>
+<li><b>M</b><span>Mike</span></li>
+<li><b>N</b><span>November</span></li>
+<li><b>O</b><span>Oscar</span></li>
+<li><b>P</b><span>Papa</span></li>
+<li><b>Q</b><span>Quebec</span></li>
+<li><b>R</b><span>Romeo</span></li>
+<li><b>S</b><span>Sierra</span></li>
+<li><b>T</b><span>Tango</span></li>
+<li><b>U</b><span>Uniform</span></li>
+<li><b>V</b><span>Victor</span></li>
+<li><b>W</b><span>Whiskey</span></li>
+<li><b>X</b><span>X-ray</span></li>
+<li><b>Y</b><span>Yankee</span></li>
+<li><b>Z</b><span>Zulu</span></li></ul>
+<h3>Leer un identificador del mapa</h3><figure class="atlas-plate ejemplo-deletreo"><ol class="radio-marca-leida" aria-label="BV07 se transmite Bravo, Victor, cero, siete"><li><b>B</b><span>Bravo</span></li><li><b>V</b><span>Victor</span></li><li><b>0</b><span>cero</span></li><li><b>7</b><span>siete</span></li></ol><figcaption>BV07 se transmite «Bravo Victor cero siete».</figcaption></figure>
+<h3>Corregir una letra durante la lectura de vuelta</h3><figure class="transmision"><figcaption>Red Alfa–Bravo · Enlace establecido</figcaption><ol><li class="origen"><div><b>Alfa</b><small>Da la referencia</small></div><p>«Punto de reunión marcado Bravo Victor cero siete. Confirme marca. Cambio.»</p></li>
+<li class="destino"><div><b>Bravo</b><small>Devuelve lo que oyó</small></div><p>«Delta Victor cero siete. Cambio.»</p></li>
+<li class="origen"><div><b>Alfa</b><small>Corrige la primera letra</small></div><p>«Negativo. Primera letra Bravo. Marca completa Bravo Victor cero siete. Cambio.»</p></li>
+<li class="destino"><div><b>Bravo</b><small>Devuelve la marca corregida</small></div><p>«Bravo Victor cero siete. Cambio.»</p></li>
+<li class="origen"><div><b>Alfa</b><small>Confirma y cierra</small></div><p>«Correcto. Corto.»</p></li></ol></figure>
+<footer class="running-foot"><span>MOAA · 19</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b4-apartado-1"><div class="folio libro-folio"><span>B4 · Vehículos ligeros</span><span>Hoja 20</span></div>
+<div class="apertura"><strong>Vehículos ligeros</strong><p>El infante embarcado tiene un puesto, un sector y una unidad con la que debe volver a reunirse al bajar.</p><figure class="metopa"><img src="recursos/metopa-b4.png" alt=""><figcaption><b>Metopa B4 · Vehículos ligeros</b><small>Distintivo que aparece bajo tu nick en el foro al obtener esta metopa.</small></figcaption></figure></div>
+<h2 id="b4-ref-b4-1">Entender el transporte</h2>
+<p class='opening'>Un convoy reúne varios vehículos que siguen un recorrido común. Cada vehículo necesita una identificación que permanezca clara aunque cambie el orden de marcha. Antes de subir, relaciona tres datos: tu escuadra, el vehículo que te toca y el punto donde volveréis a juntaros. Saber en qué asiento viajas no basta para saber dónde tiene que estar tu equipo al bajar.</p>
+<h3 id="b4-ref-b4-2">Reconocer el vehículo antes de ocupar un puesto</h3><p>Primero identifica qué vehículo ves; después, para qué se emplea en esta misión. Un camión sanitario y un camión de reparación pueden usar chasis parecidos. La función determina a quién debes avisar y qué apoyo puedes esperar.</p><div class="recognition"><figure class="atlas-plate"><img loading="lazy" src="recursos/V_ligero_HMMWV.jpg" alt="HMMWV"><figcaption><strong>HMMWV</strong> Vehículo ligero. La movilidad prima sobre la protección.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/V_Semi-pesado_Stryker.jpg" alt="Stryker"><figcaption><strong>Stryker</strong> Blindado de ruedas. Identifica la variante y su cometido.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/V_pesado_t90.jpg" alt="T-90"><figcaption><strong>T-90</strong> Carro de combate. Requiere coordinación con la infantería a pie.</figcaption></figure></div><details><summary>Reconocimiento por función · Seis ejemplos</summary><div class="recognition"><figure class="atlas-plate"><img loading="lazy" src="recursos/faav.jpg" alt="Transporte anfibio"><figcaption><strong>Transporte anfibio</strong> Transporta tropa y presta apoyo.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/favenger.jpg" alt="Defensa antiaérea"><figcaption><strong>Defensa antiaérea</strong> Protege frente a amenazas aéreas.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/fgasolina.jpg" alt="Cisterna"><figcaption><strong>Cisterna</strong> Abastece de combustible.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/fgrad.jpg" alt="Lanzacohetes"><figcaption><strong>Lanzacohetes</strong> Proporciona fuego indirecto.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/fmedic.jpg" alt="Ambulancia"><figcaption><strong>Ambulancia</strong> Traslada personal herido.</figcaption></figure><figure class="atlas-plate"><img loading="lazy" src="recursos/freparacion.jpg" alt="Reparaciones"><figcaption><strong>Reparaciones</strong> Da apoyo a vehículos averiados.</figcaption></figure></div></details><h3 id="b4-ref-b4-7">Reconocer qué apoyo lleva el vehículo</h3><p>Observa el montaje y confirma la variante en el briefing. Un mismo chasis puede transportar tropa o llevar una ametralladora, un lanzagranadas o un sistema especializado. El artillero informa al jefe del estado de su puesto. La tropa necesita saber qué sector tiene asignado y por dónde podrá desembarcar sin cruzarlo. Si un vehículo pierde su capacidad de apoyo pero puede circular, comunica ambas cosas por separado.</p>
+
+
+<h3 id="b4-ref-b4-3">Quién hace qué en el convoy</h3><p>El jefe de convoy coordina los vehículos. En cada uno, el conductor mantiene el itinerario; el jefe de vehículo enlaza con el convoy y controla al personal embarcado. Si hay artillero, mantiene el sector asignado. El pasajero observa su lado y comunica lo que puede ver desde su asiento.</p><h3>Antes de embarcar</h3>
+<p>Confirma vehículo, asiento, jefe de vehículo y punto de destino. El conductor atiende a la ruta inmediata; el jefe o copiloto coordina navegación y enlace; el artillero vigila el sector de su arma. La tropa embarcada amplía la observación. Un transporte armado puede seguir ofreciendo poca protección.</p>
+
+<h3>Ejemplo resuelto · Dos vehículos, una escuadra</h3>
+<p>Alba, León y Vera van en Uno. Sol, Roca y Mar van en Dos. Antes de partir, Vera cambia a Dos por indicación del jefe. Uno comunica «Alba y León, dos a bordo»; Dos comunica «Sol, Roca, Mar y Vera, cuatro a bordo». El responsable obtiene seis personas distintas y sabe en qué vehículo viaja cada una. Si ambos hubieran dicho únicamente «listos», el cambio habría pasado inadvertido hasta el desembarque.</p>
+<figure class="transmision">
+<figcaption>Red del convoy · Cambio de pasajero</figcaption>
+<ol>
+<li class="origen">
+<div><b>Vehículo Uno</b><small>Notifica el traslado</small></div>
+<p>«Vehículo Dos, aquí Vehículo Uno. Vera pasa a tu vehículo. Dos pasajeros quedan a bordo de Uno. Confirma cuando la recibas. Cambio.»</p>
+</li>
+<li class="destino">
+<div><b>Vehículo Dos</b><small>Acusa recibo</small></div>
+<p>«Vehículo Uno, aquí Vehículo Dos. Recibido. Pendiente de Vera. Corto.»</p>
+</li>
+<li class="destino">
+<div><b>Vehículo Dos</b><small>Actualiza tras el embarque</small></div>
+<p>«Vehículo Uno, aquí Vehículo Dos. Vera a bordo. Cuatro pasajeros en Dos. Cambio.»</p>
+</li>
+<li class="origen">
+<div><b>Vehículo Uno</b><small>Cierra el recuento</small></div>
+<p>«Vehículo Dos, aquí Vehículo Uno. Recibido. Seis pasajeros embarcados. Corto.»</p>
+</li>
+</ol>
+</figure>
+<footer class="running-foot"><span>MOAA · 20</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b4-apartado-2"><div class="folio libro-folio"><span>B4 · Vehículos ligeros</span><span>Hoja 21</span></div>
+
+<h2>Observar desde el vehículo</h2>
+<p class='opening'>El conductor mira principalmente la ruta inmediata. Como pasajero puedes ver un obstáculo lateral antes que él. Para que el aviso sea útil debe quedar claro a qué vehículo afecta. «Dos, rama baja a tu derecha al salir del patio» permite actuar al destinatario aunque el primer vehículo ya haya pasado.</p>
+<h3>En movimiento y durante los altos</h3>
+<p>Observa el lado que te corresponde. Al informar de un obstáculo indica qué vehículo avisas y dónde está el obstáculo respecto a su marcha. Conserva tu puesto durante los altos hasta recibir instrucciones, salvo que exista peligro inmediato. Deja libres las trayectorias de los vehículos y los sectores del artillero.</p>
+<figure class="plate">
+<img src="recursos/sectores.jpg" alt="Reparto de sectores alrededor de vehículos en el material de B4">
+<figcaption>Lámina B4 · Sectores de observación.</figcaption>
+</figure>
+<footer class="running-foot"><span>MOAA · 21</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b4-procedimientos"><div class="folio libro-folio"><span>B4 · Vehículos ligeros</span><span>Hoja 22</span></div>
+
+<h2>Avisos del pasajero en marcha</h2><h3>Indicaciones de dirección en el vehículo</h3><p>Las doce son el frente del vehículo al que se refiera el aviso. En una curva, la cabeza y la cola pueden apuntar en direcciones distintas. Para los ocupantes del propio vehículo sirve la referencia horaria. Para otro vehículo del convoy añade un hito fijo o una marcación con origen conocido.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-calle-desde-vehiculo.png" width="1000" height="504" alt="Vista desde el vehículo: infantes en ambos lados de la calle, un vehículo delante y humo al fondo."><figcaption><strong>Desde el vehículo</strong> · La calle abre por delante y se ve humo al fondo. El eje de la calle permite que otro vehículo reconozca el lugar aunque llegue desde otra dirección.</figcaption></figure><p><strong>Al conductor:</strong> «Humo a las doce, al fondo de la calle». <strong>Al resto del convoy:</strong> «Humo al fondo de la calle, más allá del vehículo que tenemos delante». La imagen permite informar del humo; su causa sigue sin confirmar.</p>
+<h3>Un aviso dentro del vehículo y otro para la columna</h3><p>El pasajero de cabeza ve una rama baja. El conductor necesita saber dónde está en relación con su vehículo. El siguiente vehículo, que todavía no ve el árbol, necesita además una referencia del recorrido.</p><blockquote>Voz interior: «Rama baja delante, lado derecho». Red de convoy: «Vehículo Dos, aquí Vehículo Uno. Rama baja a la derecha a la salida del patio norte. Cambio».</blockquote><p>El responsable del vehículo retransmite una vez por la red. Los demás pasajeros conservan la observación de sus sectores.</p>
+<footer class="running-foot"><span>MOAA · 22</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b4-en-mision"><div class="folio libro-folio"><span>B4 · Vehículos ligeros</span><span>Hoja 23</span></div>
+
+<h2>El segundo vehículo pierde al primero</h2>
+<p>El vehículo de cabeza sale de una población. El segundo encuentra dos ramales y ha perdido el contacto visual. El pasajero encargado del enlace identifica su vehículo y da el último cruce reconocido. La cabeza responde con una referencia que el segundo pueda comprobar desde su posición. Si solo dice «seguidnos», sigue faltando el dato que permite escoger el ramal. Antes de continuar, ambos confirman dónde volverán a reunirse.</p>
+<footer class="running-foot"><span>MOAA · 23</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b4-incidencias"><div class="folio libro-folio"><span>B4 · Vehículos ligeros</span><span>Hoja 24</span></div>
+
+<h2>Avería y aviso al convoy</h2>
+<h3 id="b4-ref-b4-10">Si un vehículo no puede continuar</h3>
+<p>Uno sigue en marcha y Dos se detiene por una avería. El dato que falta al jefe es dónde ha quedado Dos y cuántos jugadores siguen con él. El responsable comunica posición, personal y si dispone de enlace. Si el mando redistribuye pasajeros, cada vehículo actualiza los nombres antes de anunciar que puede continuar.</p>
+<h3>Qué necesita saber el resto de la columna</h3><p>Si viajas en el vehículo detenido, comunica al responsable qué ocurre en tu puesto. El responsable da un solo parte con el indicativo del vehículo, la ubicación, si puede moverse y el estado de sus ocupantes. Si desconoce la causa, describe el síntoma. Los demás vehículos esperan instrucciones antes de acercarse.</p><blockquote>«Cabeza, aquí Dos. Inmovilizado a la salida norte del pueblo, junto al depósito de agua. Cuatro a bordo, sin heridos. Causa desconocida. Solicito recuperación. Cambio.»</blockquote>
+
+
+<h3 id="b4-ref-b4-6">Combustible, daños y apoyo</h3><p>El conductor comunica si puede seguir la marcha y dónde se ha detenido. El jefe informa al convoy de la posición, el personal a bordo y qué apoyo hace falta. Si detectas un objeto sospechoso en la ruta, describe su ubicación y aspecto. El mando decide el itinerario y qué vehículo presta apoyo.</p>
+<footer class="running-foot"><span>MOAA · 24</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b4-apartado-3"><div class="folio libro-folio"><span>B4 · Vehículos ligeros</span><span>Hoja 25</span></div>
+
+<h2>Recuperar la unidad a pie</h2>
+<p class='opening'>Cuando el jefe manda bajar, el grupo pasa de ocupar asientos a ocupar terreno. Si todos se detienen en la puerta, el último no puede salir y el jefe puede confundir una cola con una escuadra reunida. El primer jugador despeja el acceso y se orienta hacia su sector; el último confirma que ha salido y se incorpora al recuento.</p>
+<h3>Un alto no siempre es el destino</h3>
+<p>El convoy se detiene antes del cruce. Desde tu asiento ves un obstáculo que el conductor puede no ver. Indica el vehículo al que avisas, el lado y el obstáculo. Sigue atento a tu sector mientras el jefe decide si la tropa permanece embarcada.</p>
+<figure class="atlas-plate"><img loading="lazy" src="recursos/Despliegue-lateral.png" alt="Infantería desembarcada junto a dos vehículos con sectores laterales señalados"><figcaption>Despliegue lateral · Una vez fuera, despeja la salida y ocupa tu sector. El vehículo sigue necesitando espacio para maniobrar.</figcaption></figure><h3 id="b4-ref-b4-11">Desembarcar y reagruparse</h3>
+<p>Escucha por qué lado debes bajar y dónde va a reunirse la escuadra. Despeja la salida, ocupa tu sector y permite que baje el siguiente. El jefe comprueba que todos están fuera. Si un vehículo queda inmovilizado, comunica su posición y el estado del personal antes de organizar el apoyo.</p>
+<h3>Recuperar la escuadra</h3>
+<p>Al bajar, localiza el punto de reunión antes de seguir al primer soldado que veas. Si falta alguien, comunica quién y en qué vehículo iba. Ese dato permite buscarlo sin deshacer el perímetro.</p>
+<h3>Desembarque en zona urbana</h3><p>Los edificios recortan la visión. Antes de bajar, confirma lado y punto de reunión. Al salir de un vehículo diferente al de tu binomio, usa una referencia compartida: la esquina del patio o un acceso concreto. Evita permanecer junto a las puertas y comprueba dónde está la otra tripulación antes de cruzar su recorrido.</p>
+<footer class="running-foot"><span>MOAA · 25</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja book-text" id="b4-formaciones"><div class="folio libro-folio"><span>B4 · Vehículos ligeros</span><span>Hoja 26</span></div>
+
+<h2 id="b4-ref-b4-8">Formaciones y maniobras del convoy</h2><p>Lee primero la flecha de marcha y localiza el número de tu vehículo. El sombreado rojo representa el sector que observa cada puesto. Compara las tres columnas: en la primera cambia el sector; en la escalonada cambia también la traza; en la paralela cambia la organización en dos columnas.</p><h3>Columna</h3><p>Uno marca el itinerario. Los vehículos intermedios reparten los flancos y el último vigila la retaguardia.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-1.jpg" alt="Columna: distribución y sectores de los vehículos"><figcaption>Lámina B4.01 · Columna. La flecha indica el sentido de marcha.</figcaption></figure><h3>Columna escalonada</h3><p>Los pares se desplazan respecto de los impares, conservando el orden. La vía debe permitir el desplazamiento lateral.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-2.jpg" alt="Columna escalonada: distribución y sectores de los vehículos"><figcaption>Lámina B4.02 · Columna escalonada. La flecha indica el sentido de marcha.</figcaption></figure><h3>Columna paralela</h3><p>Dos columnas avanzan a la misma altura. Cada lateral vigila el exterior; la cabeza mantiene la dirección común.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-3.jpg" alt="Columna paralela: distribución y sectores de los vehículos"><figcaption>Lámina B4.03 · Columna paralela. La flecha indica el sentido de marcha.</figcaption></figure><details><summary>Otras seis formaciones sobre el terreno</summary><h3>Cuña</h3><p>La cabeza guía y los restantes abren las alas. La separación lateral exige terreno despejado.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-4.jpg" alt="Cuña: distribución y sectores de los vehículos"><figcaption>Lámina B4.04 · Cuña. La flecha indica el sentido de marcha.</figcaption></figure><h3>Cuña invertida</h3><p>Los elementos adelantados quedan a ambos lados del eje central. La escuadra la adopta cuando así lo indica el mando.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-5.jpg" alt="Cuña invertida: distribución y sectores de los vehículos"><figcaption>Lámina B4.05 · Cuña invertida. La flecha indica el sentido de marcha.</figcaption></figure><h3>Fila o línea</h3><p>Los vehículos se sitúan a una altura similar. Los extremos conservan sus flancos y cada tripulación comprueba dónde está el vehículo contiguo.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-6.jpg" alt="Fila o línea: distribución y sectores de los vehículos"><figcaption>Lámina B4.06 · Fila o línea. La flecha indica el sentido de marcha.</figcaption></figure><h3>Fila escalonada</h3><p>Las dos filas quedan a distinta profundidad. Desde atrás hay que conocer la posición de la fila delantera.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-7.jpg" alt="Fila escalonada: distribución y sectores de los vehículos"><figcaption>Lámina B4.07 · Fila escalonada. La flecha indica el sentido de marcha.</figcaption></figure><h3>Columna en ala</h3><p>El mando designa el ala y los vehículos que se desplazan hacia ella. El guía mantiene la referencia de avance.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-8.jpg" alt="Columna en ala: distribución y sectores de los vehículos"><figcaption>Lámina B4.08 · Columna en ala. La flecha indica el sentido de marcha.</figcaption></figure><h3>Rombo o diamante</h3><p>Los puestos de cabeza, flancos y cola delimitan un centro protegido. La anchura del terreno condiciona su empleo.</p><figure class="atlas-plate"><img loading="lazy" src="recursos/b4-formacion-9.jpg" alt="Rombo o diamante: distribución y sectores de los vehículos"><figcaption>Lámina B4.09 · Rombo o diamante. La flecha indica el sentido de marcha.</figcaption></figure></details><h3 id="b4-ref-b4-9">Maniobras animadas</h3><p>Sigue un único vehículo desde la posición inicial hasta el alto o el cambio de dirección. Después identifica qué puesto conserva su sector mientras cambia la disposición.</p><details><summary>Alto en espiga</summary><video controls playsinline preload="none" aria-label="Alto en espiga" poster="recursos/b4-maniobra-1.jpg" src="recursos/b4-maniobra-1.mp4"></video></details><details><summary>Alto en perímetro</summary><video controls playsinline preload="none" aria-label="Alto en perímetro" poster="recursos/b4-maniobra-2.jpg" src="recursos/b4-maniobra-2.mp4"></video></details><details><summary>Alto de apoyo en zona</summary><video controls playsinline preload="none" aria-label="Alto de apoyo en zona" poster="recursos/b4-maniobra-3.jpg" src="recursos/b4-maniobra-3.mp4"></video></details><details><summary>Repliegue</summary><video controls playsinline preload="none" aria-label="Repliegue" poster="recursos/b4-maniobra-4.jpg" src="recursos/b4-maniobra-4.mp4"></video></details><details><summary>Salida rápida de la zona</summary><video controls playsinline preload="none" aria-label="Salida rápida de la zona" poster="recursos/b4-maniobra-5.jpg" src="recursos/b4-maniobra-5.mp4"></video></details><details><summary>Transición a cuña</summary><video controls playsinline preload="none" aria-label="Transición a cuña" poster="recursos/b4-maniobra-6.jpg" src="recursos/b4-maniobra-6.mp4"></video></details><details><summary>Despliegue en línea</summary><video controls playsinline preload="none" aria-label="Despliegue en línea" poster="recursos/b4-maniobra-7.jpg" src="recursos/b4-maniobra-7.mp4"></video></details><details><summary>Viraje lateral</summary><video controls playsinline preload="none" aria-label="Viraje lateral" poster="recursos/b4-maniobra-8.jpg" src="recursos/b4-maniobra-8.mp4"></video></details><details><summary>Flanqueo lateral</summary><video controls playsinline preload="none" aria-label="Flanqueo lateral" poster="recursos/b4-maniobra-9.jpg" src="recursos/b4-maniobra-9.mp4"></video></details><details><summary>Envolvente</summary><video controls playsinline preload="none" aria-label="Envolvente" poster="recursos/b4-maniobra-10.jpg" src="recursos/b4-maniobra-10.mp4"></video></details>
+<footer class="running-foot"><span>MOAA · 26</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+<article class="hoja" id="glosario"><div class="folio libro-folio"><span>Anexo · Consulta</span><span>Hoja 27</span></div><h2>Vocabulario de patrulla</h2><h2>En formación</h2>
+<dl>
+<dt>Guía</dt>
+<dd>Marca la traza de la unidad. En columna, pasa por el punto donde él giró.</dd>
+<dt>Sector</dt>
+<dd>Parte del terreno que te toca observar. Comprueba dónde empieza el del compañero.</dd>
+<dt>Binomio</dt>
+<dd>Pareja que coordina sus movimientos. Antes de desplazarte, identifica quién te cubre.</dd>
+<dt>Repliegue</dt>
+<dd>Movimiento con el que la unidad gana distancia respecto al contacto mientras sus elementos se relevan.</dd>
+</dl>
+<h2>En el mapa</h2>
+<dl>
+<dt>Rumbo</dt>
+<dd>Dirección medida respecto al norte. Permite compartir una dirección aunque cada jugador esté mirando a un lado distinto.</dd>
+<dt>Contrarrumbo</dt><dd>Dirección opuesta al rumbo observado. Si ves una referencia al 140°, desde ella la línea hacia ti sigue el 320°.</dd>
+<dt>Cuadrícula</dt>
+<dd>Área del mapa identificada por coordenadas. Añade un detalle del terreno si hay varios destinos dentro de ella.</dd>
+<dt>Punto de reunión</dt>
+<dd>Lugar acordado donde la unidad vuelve a agruparse. Debe ser reconocible para todos.</dd>
+</dl>
+<h2>En la red</h2>
+<dl>
+<dt>Indicativo</dt>
+<dd>Nombre con el que llamas a una unidad o te identificas en su red.</dd>
+<dt>Acuse de recibo</dt>
+<dd>Respuesta que confirma que el mensaje ha llegado. Repite un dato crítico cuando sea necesario comprobar que lo entendiste.</dd>
+<dt>Lectura de vuelta</dt><dd>El receptor devuelve un dato decisivo, por ejemplo «cero cinco uno, cero seis nueve». El emisor confirma o corrige.</dd>
+<dt>Contacto</dt>
+<dd>Observación que comunicas al grupo. Describe qué ves antes de atribuirle un bando.</dd>
+</dl><footer class="running-foot"><span>GRUPO ARMADOS · MOAA</span><a href="#sumario">Volver al índice ↑</a></footer></article>
+</main><script>
+const old = new URLSearchParams(location.hash.slice(1));
+if (old.has('k')) {
+  const module = /^(b[1-4])\.html$/.exec(old.get('p') || '')?.[1];
+  const section = old.get('s') || '';
+  const anchor = module ? module + '-' + (section || 'apartado-1') :
+    old.get('p') === 'terminologia.html' ? 'glosario' : section;
+  history.replaceState(null, '', location.pathname + location.search);
+  if (anchor && document.getElementById(anchor)) location.replace('#' + encodeURIComponent(anchor));
+}
 </script></body></html>
